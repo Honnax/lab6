@@ -2,11 +2,6 @@
 #include <stack>
 #include <fstream>
 
-omfl::__NameMe_ parse(std::string str){
-    omfl::__NameMe_ done_parse;
-    done_parse.parse(str);
-    return done_parse;
-}
 bool check_correct_brackets_sequence (const std::string& get) {//правильное колво скобок(и все)
     std::string command = "";
     std::stack <char> top;
@@ -57,8 +52,6 @@ bool check_correct_brackets_sequence (const std::string& get) {//правиль�
     }
     return true;
 }
-
-
 bool bool_values_check (std::string arg) {
     int runner = arg.size()-1;
     for (runner; runner > -1; --runner) {
@@ -72,6 +65,7 @@ bool bool_values_check (std::string arg) {
     }
     return false;
 }
+
 
 bool integer_values_check (std::string arg) {
     int runner = arg.size()-1;
@@ -97,6 +91,7 @@ bool integer_values_check (std::string arg) {
     }
     return false;
 }
+
 bool float_values_check (std::string arg) {
     int runner = arg.size() - 1;
     for (runner; runner > -1; --runner) {
@@ -213,7 +208,6 @@ bool key_and_section_check (std::string arg, bool is_section) { //ключ "asd 
         return true;
     }
 }
-
 bool omfl::__NameMe_::valid_string (std::string get) {
     int comment_index = get.size();
     for (int i = 0; i < get.size(); ++i) {
@@ -269,10 +263,12 @@ bool omfl::__NameMe_::valid_string (std::string get) {
             }
         } return true;
     }
+
+
 bool omfl::__NameMe_::valid() const{
-    return valid_parse;
+    return head_section->valid_parse;
 };
-std::vector<std::string> omfl::__NameMe_::makeSectionNameVector(const std::string& sectionName){// получили название без скобок
+std::vector<std::string> makeSectionNameVector(const std::string& sectionName){// получили название без скобок
     std::vector<std::string> theVector;
     std::string pod_section_Name;
     int sectionNameIndexStart = 0;
@@ -392,10 +388,10 @@ std::string makeItOneLine(const std::string& str){
     }
     return oneLine;
 }
-omfl::__NameMe_ omfl::__NameMe_::parse_this_string(const std::string &str){
+omfl::__NameMe_& omfl::__NameMe_::parse_this_string(const std::string &str){
     std::string oneLine = makeItOneLine(str);
     if(oneLine.size() == 0){
-        return *head_section;
+        return head_section;
     } else if (str[0] == '['){//значит это секция
         //теперь либо найдем существующую секцию, либо создадим новую
         std::string sectionName = oneLine.substr(1, str.size()-2);//обрезанный вариант, без скобок
@@ -429,7 +425,7 @@ omfl::__NameMe_ omfl::__NameMe_::parse_this_string(const std::string &str){
                 head_section->current_section = head_section->current_section->pod_section_[head_section->current_section->pod_section_.size()-1].second;// спустились в последний добавленныый
             }//так мы должны добавить все подсекции и спуститься в нижнюю
         }
-        return *head_section;
+        return head_section;
     } else { //ключ и значение
         int i = 0;
         std::string keyName;
@@ -485,7 +481,7 @@ omfl::__NameMe_ omfl::__NameMe_::parse_this_string(const std::string &str){
                 }
             }
         }
-        return *head_section;
+        return head_section;
 
     }
 };
@@ -523,79 +519,62 @@ omfl::__NameMe_ omfl::__NameMe_::parse(const std::string &str){
 
 
 }
-
-omfl::__NameMe_::answerOrMassiveClass& omfl::__NameMe_::answerOrMassiveClass::find_key(std::string& key){
-
-    for (int i = 0; i < current_section->string_values.size(); ++i) {
-        if (current_section->string_values[i].first == key){
-
-            theAnswer.second = 's';
-            theAnswer.second = current_section->string_values[i].second;
-            isAnswer = true;
-            break;
-        }
-    }
-    for (int i = 0; i < current_section->int_values.size(); ++i) {
-        if (current_section->int_values[i].first == key){
-            theAnswer.first = 'i';
-            theAnswer.second = std::to_string(current_section->int_values[i].second);
-            isAnswer = true;
-            break;
-        }
-    }
-    for (int i = 0; i < current_section->float_values.size(); ++i) {
-        if (current_section->float_values[i].first == key){
-            theAnswer.first = 'f';
-            theAnswer.second = std::to_string(current_section->float_values[i].second);
-            isAnswer = true;
-            break;
-        }
-    }
-    for (int i = 0; i < current_section->bool_values.size(); ++i) {
-        if (current_section->bool_values[i].first == key){
-            theAnswer.first = 'b';
-            if (current_section->bool_values[i].second == true){
-                theAnswer.second = "true";
-            } else theAnswer.second = "false";
-            isAnswer = true;
-            break;
-        }
-    }
-    for (int i = 0; i < current_section->massive_values.size(); ++i) {
-        if (current_section->massive_values[i].first == key){
-            massive = current_section->massive_values[i].second;
-            isMassive = true;
-        }
-    }
-    return *this;
-
+omfl::__NameMe_ parse(std::string strrr){ //TODO не вызывает предыдущие
+    const std::string to_parse = strrr;
+    return parse(to_parse);
 }
-omfl::__NameMe_::answerOrMassiveClass& omfl::__NameMe_::answerOrMassiveClass::Get(const std::string& key){
+
+
+omfl::__NameMe_ omfl::__NameMe_::Get(const std::string& key) const{
     //проходимся по всем секциям инвапиант - у нас название по порядку
     //ищем точку, чтобы определить подсекция ли это
-        std::vector<std::string> sectionAndKeyNameVector = makeSectionNameVector(key);
-        int where_sections_ends = -1;
-        for (int i = 0; i < sectionAndKeyNameVector.size(); ++i) {
-            for (int j = 0; j < current_section->pod_section_.size(); ++j) { //тк в конце может быть ключ, vjuen ,могут быть только названия секций
-                if (sectionAndKeyNameVector[i] == current_section->pod_section_[j].first){
-                    current_section = current_section->pod_section_[j].second;
-                    where_sections_ends = i;
-                }
+    std::vector<std::string> sectionAndKeyNameVector = makeSectionNameVector(key);
+    int where_sections_ends = -1;
+    __NameMe_ sectionWithAnswer = head_section;
+    for (int i = 0; i < sectionAndKeyNameVector.size(); ++i) {
+        for (int j = 0; j < sectionWithAnswer.pod_section_.size(); ++j) { //тк в конце может быть ключ, vjuen ,могут быть только названия секций
+            if (sectionAndKeyNameVector[i] == sectionWithAnswer.pod_section_[j].first){
+                sectionWithAnswer = sectionWithAnswer.pod_section_[j].second;
+                where_sections_ends = i;
             }
         }
-    if (where_sections_ends == sectionAndKeyNameVector.size()-2){ //значит в конце есть ключ
-        find_key(sectionAndKeyNameVector[sectionAndKeyNameVector.size()-1]);
     }
-        return *this;
+    //если дошли не до конца - проверим существование такой ключа/секции
+    if (where_sections_ends != sectionAndKeyNameVector.size() - 1){
+        if (where_sections_ends < sectionAndKeyNameVector.size() - 1){//если мы не дошли до конца на 2 элемента, значит это по любому ошибка
+            std::cout << "section with name " << sectionAndKeyNameVector[where_sections_ends] << " dont exist \n";
+            return sectionWithAnswer;
+        }
+        bool isSectionOrKeyExist = false;
+        for (int i = 0; i < sectionWithAnswer.pod_section_.size(); ++i) {
+            if ( sectionAndKeyNameVector[where_sections_ends] == sectionWithAnswer.pod_section_[i].first) isSectionOrKeyExist = true;
+        }
+        for (int i = 0; i < sectionWithAnswer.bool_values.size(); ++i) {
+            if (sectionAndKeyNameVector[where_sections_ends] == sectionWithAnswer.bool_values[i].first) isSectionOrKeyExist = true;
+        }
+        for (int i = 0; i < sectionWithAnswer.int_values.size(); ++i) {
+            if (sectionAndKeyNameVector[where_sections_ends] == sectionWithAnswer.int_values[i].first) isSectionOrKeyExist = true;
+        }
+        for (int i = 0; i < sectionWithAnswer.float_values.size(); ++i) {
+            if (sectionAndKeyNameVector[where_sections_ends] == sectionWithAnswer.float_values[i].first) isSectionOrKeyExist = true;
+        }
+        for (int i = 0; i < sectionWithAnswer.string_values.size(); ++i) {
+            if (sectionAndKeyNameVector[where_sections_ends] == sectionWithAnswer.string_values[i].first) isSectionOrKeyExist = true;
+        }
+        if (!isSectionOrKeyExist){
+            std::cout << "section or key with name " << sectionAndKeyNameVector[where_sections_ends] << " dont exist \n";
+            return current_section;
+        }
+
+    }
+
+    //ьеперь у нас либо в последней ячейке название ключа, либо там было
+        return sectionWithAnswer;
 }
 using namespace omfl;
 
- __NameMe_::answerOrMassiveClass __NameMe_::Get(const std::string& key){
-    answerOrMassiveClass answerObject;
-    answerObject.Get(key);
-    return answerObject;
-}
-__NameMe_::answerOrMassiveClass& __NameMe_::answerOrMassiveClass::operator[](size_t const& index){
+
+answerOrMassiveClass& answerOrMassiveClass::operator[](size_t const& index){
     if (massive.massKeys.size()-1 < index){
         theAnswer.first = '-';
         theAnswer.second = "";
@@ -627,57 +606,57 @@ __NameMe_::answerOrMassiveClass& __NameMe_::answerOrMassiveClass::operator[](siz
 
 
 
-bool __NameMe_::answerOrMassiveClass::IsBool(){
+bool __NameMe_::IsBool(){
     if (theAnswer.first == 'b'){
         return true;
     } return false;
 }
-bool __NameMe_::answerOrMassiveClass::IsInt(){
+bool __NameMe_::IsInt(){
     if (theAnswer.first == 'i'){
         return true;
     } return false;
 }
-bool __NameMe_::answerOrMassiveClass::IsFloat(){
+bool __NameMe_::IsFloat(){
     if (theAnswer.first == 'f'){
         return true;
     } return false;
 }
-bool __NameMe_::answerOrMassiveClass::IsString(){
+bool __NameMe_::IsString(){
     if (theAnswer.first == 's'){
         return true;
     } return false;
 }
-bool __NameMe_::answerOrMassiveClass::IsArray(){
+bool __NameMe_::IsArray(){
     if (theAnswer.first == 'm'){
         return true;
     } return false;
 }
 
-float __NameMe_::answerOrMassiveClass::AsFloat(){
+float __NameMe_::AsFloat(){
     return std::stof(theAnswer.second);
 }
-bool __NameMe_::answerOrMassiveClass::AsBool(){
+bool __NameMe_::AsBool(){
     if (theAnswer.second == "true"){
         return true;
     } return false;
 
 }
-int __NameMe_::answerOrMassiveClass::AsInt(){
+int __NameMe_::AsInt(){
     return std::stoi(theAnswer.second);
 }
-std::string __NameMe_::answerOrMassiveClass::AsString(){
+std::string __NameMe_::AsString(){
     return theAnswer.second;
 }
 
-int __NameMe_::answerOrMassiveClass::AsIntOrDefault(int value){
+int __NameMe_::AsIntOrDefault(int value){
     if (theAnswer.first == 'i') return std::stoi(theAnswer.second);
     return value;
 }
-std::string __NameMe_::answerOrMassiveClass::AsStringOrDefault(std::string value){
+std::string __NameMe_::AsStringOrDefault(std::string value){
     if ( theAnswer.first == 's') return theAnswer.second;
     return value;
 }
-bool __NameMe_::answerOrMassiveClass::AsBoolOrDefault(bool value){
+bool __NameMe_::AsBoolOrDefault(bool value){
     if (theAnswer.first == 'b'){
         if (theAnswer.second == "true"){
             return true;
@@ -685,7 +664,7 @@ bool __NameMe_::answerOrMassiveClass::AsBoolOrDefault(bool value){
     }
     return value;
 }
-float __NameMe_::answerOrMassiveClass::AsFloatOrDefault(float value){
+float __NameMe_::AsFloatOrDefault(float value){
     if(theAnswer.first == 'f') return std::stof(theAnswer.second);
     return value;
 }
